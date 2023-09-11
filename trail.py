@@ -5,6 +5,8 @@ from mountain import Mountain
 
 from typing import TYPE_CHECKING, Union
 
+from personality import PersonalityDecision
+
 # Avoid circular imports for typing.
 if TYPE_CHECKING:
     from personality import WalkerPersonality
@@ -25,7 +27,7 @@ class TrailSplit:
 
     def remove_branch(self) -> TrailStore:
         """Removes the branch, should just leave the remaining following trail."""
-        raise NotImplementedError()
+        return self.following.store
 
 @dataclass
 class TrailSeries:
@@ -44,34 +46,36 @@ class TrailSeries:
         Returns a *new* trail which would be the result of:
         Removing the mountain at the beginning of this series.
         """
-        raise NotImplementedError()
+        return self.following.store
 
     def add_mountain_before(self, mountain: Mountain) -> TrailStore:
         """
         Returns a *new* trail which would be the result of:
         Adding a mountain in series before the current one.
         """
-        raise NotImplementedError()
+        return TrailSeries(mountain, Trail(self))
 
     def add_empty_branch_before(self) -> TrailStore:
         """Returns a *new* trail which would be the result of:
         Adding an empty branch, where the current trailstore is now the following path.
         """
-        raise NotImplementedError()
+        return TrailSplit(Trail(None), Trail(None), Trail(self))
 
     def add_mountain_after(self, mountain: Mountain) -> TrailStore:
         """
         Returns a *new* trail which would be the result of:
         Adding a mountain after the current mountain, but before the following trail.
         """
-        raise NotImplementedError()
+        new_following = Trail(TrailSeries(mountain, self.following))
+        return TrailSeries(self.mountain, new_following)
 
     def add_empty_branch_after(self) -> TrailStore:
         """
         Returns a *new* trail which would be the result of:
         Adding an empty branch after the current mountain, but before the following trail.
         """
-        raise NotImplementedError()
+        new_series_following = Trail(TrailSplit(Trail(None), Trail(None), self.following))
+        return TrailSeries(self.mountain, new_series_following)
 
 TrailStore = Union[TrailSplit, TrailSeries, None]
 
@@ -85,18 +89,47 @@ class Trail:
         Returns a *new* trail which would be the result of:
         Adding a mountain before everything currently in the trail.
         """
-        raise NotImplementedError()
+        return Trail(TrailSeries(mountain, self))
 
     def add_empty_branch_before(self) -> Trail:
         """
         Returns a *new* trail which would be the result of:
         Adding an empty branch before everything currently in the trail.
         """
-        raise NotImplementedError()
+        return Trail(TrailSplit(Trail(None), Trail(None), self))
 
     def follow_path(self, personality: WalkerPersonality) -> None:
         """Follow a path and add mountains according to a personality."""
-        raise NotImplementedError()
+
+        #holds all paths that have not been recescted
+        bank = []
+        active = self
+        #keeps running while the trail type is not None or there is still something in the bank
+        while active.store != None or len(bank)==0:
+            #handles when a series is active
+            if isinstance(active.store, TrailSeries):
+                personality.add_mountain(active.store.mountain)
+                active = active.store.following
+            #handles when a split is active
+
+            if active.store == None:
+                active = bank.pop(0)
+
+            else:
+                #finds the path choice
+                choice = personality.select_branch(active.store.top, active.store.bottom)
+                #breaks if the choice is to stop
+                if choice == PersonalityDecision.STOP:
+                    break
+                #returns the top or bottom path, does not really matter which choice
+                if choice == PersonalityDecision.TOP:
+                    branch = active.store.top
+                else:
+                    branch = active.store.bottom
+                #adds the eventual reconnection to the bank
+                bank.append(active.store.following)
+                active = branch.store
+                
 
     def collect_all_mountains(self) -> list[Mountain]:
         """Returns a list of all mountains on the trail."""
