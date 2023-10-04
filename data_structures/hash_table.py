@@ -61,6 +61,9 @@ class LinearProbeTable(Generic[K, V]):
     @property
     def table_size(self) -> int:
         return len(self.array)
+    
+    def get_count(self):
+        return self.count
 
     def __len__(self) -> int:
         """
@@ -109,6 +112,12 @@ class LinearProbeTable(Generic[K, V]):
             if self.array[x] is not None:
                 res.append(self.array[x][0])
         return res
+    
+    def table_state(self):
+        res = []
+        for i in self.array:
+            res.append(i)
+        return i
 
     def values(self) -> list[V]:
         """
@@ -213,7 +222,7 @@ class LinearProbeTable(Generic[K, V]):
 
     def __str__(self) -> str:
         """
-        Returns all they key/value pairs in our hash table (no particular
+        Returns all the key/value pairs in our hash table (no particular
         order).
         :complexity: O(N * (str(key) + str(value))) where N is the table size
         """
