@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Union
 
 from personality import PersonalityDecision
 
+from mountain_manager import MountainManager
+
 # Avoid circular imports for typing.
 if TYPE_CHECKING:
     from personality import WalkerPersonality
@@ -83,6 +85,7 @@ TrailStore = Union[TrailSplit, TrailSeries, None]
 class Trail:
 
     store: TrailStore = None
+    difficulty_data: MountainManager|None = None
 
     def add_mountain_before(self, mountain: Mountain) -> Trail:
         """
@@ -133,7 +136,20 @@ class Trail:
 
     def collect_all_mountains(self) -> list[Mountain]:
         """Returns a list of all mountains on the trail."""
-        raise NotImplementedError()
+        res = []
+        if self.store == None:
+            return res
+        if type(self.store) is type(TrailSplit):
+            deal_with = [self.store.top, self.store.bottom]
+            for trail in deal_with:
+                res += trail.collect_all_mountains()
+        else:
+            if self.store.mountain is not None:
+                res.append(self.store.mountain)
+        
+        res += self.store.following.collect_all_mountains()
+
+        return res
 
     def difficulty_maximum_paths(self, max_difficulty: int) -> list[list[Mountain]]: # Input to this should not exceed k > 50, at most 5 branches.
         # 1008/2085 ONLY!

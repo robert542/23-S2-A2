@@ -256,11 +256,11 @@ class DoubleKeyTable(Generic[K1, K2, V]):
             # Start moving over the cluster
             position = (position[0] + 1) % self.table_size
             while self.array[position] is not None:
-                key2, value = self.array[position]
+                value_key, value = self.array[position]
                 self.array[position] = None
                 # Reinsert.
-                newpos = self._linear_probe(key2, True)
-                self.array[newpos] = (key2, value)
+                newpos = self._linear_probe(value_key, True)
+                self.array[newpos] = (value_key, value)
                 position = (position + 1) % self.table_size
 
     def _rehash(self) -> None:
@@ -271,7 +271,17 @@ class DoubleKeyTable(Generic[K1, K2, V]):
         :complexity worst: O(N*hash(K) + N^2*comp(K)) Lots of probing.
         Where N is len(self)
         """
-        raise NotImplementedError()
+        old_array = self.array
+        self.size_index += 1
+        if self.size_index == len(self.TABLE_SIZES):
+            # Cannot be resized further.
+            return
+        self.array = ArrayR(self.TABLE_SIZES[self.size_index])
+        self.count = 0
+        for item in old_array:
+            if item is not None:
+                key, value = item
+                self[key] = value
 
     @property
     def table_size(self) -> int:
