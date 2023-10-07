@@ -11,6 +11,7 @@ class TestDoubleHash(unittest.TestCase):
         See spec sheet image for clarification.
         """
         # Disable resizing / rehashing.
+        print("1Staertr")
         dt = DoubleKeyTable(sizes=[12], internal_sizes=[5])
         dt.hash1 = lambda k: ord(k[0]) % 12
         dt.hash2 = lambda k, sub_table: ord(k[-1]) % 5
@@ -32,6 +33,7 @@ class TestDoubleHash(unittest.TestCase):
 
     @number("3.2")
     def test_delete(self):
+        print("2 start")
         # Disable resizing / rehashing.
         dt = DoubleKeyTable(sizes=[12], internal_sizes=[5])
         dt.hash1 = lambda k: ord(k[0]) % 12
@@ -54,9 +56,9 @@ class TestDoubleHash(unittest.TestCase):
         self.assertRaises(KeyError, lambda: dt._linear_probe("Tim", "Jen", False))
         dt["Tim", "Kat"] = 5
         self.assertEqual(dt._linear_probe("Tim", "Kat", False), (1, 1))
-
     @number("3.3")
     def test_resize(self):
+        print("3 start")
         dt = DoubleKeyTable(sizes=[3, 5], internal_sizes=[3, 5])
         dt.hash1 = lambda k: ord(k[0]) % dt.table_size
         dt.hash2 = lambda k, sub_table: ord(k[-1]) % sub_table.table_size
@@ -75,7 +77,7 @@ class TestDoubleHash(unittest.TestCase):
         self.assertEqual(dt.table_size, 5)
         self.assertEqual(dt._linear_probe("Tim", "Bob", False), (4, 3))
         self.assertEqual(dt._linear_probe("Pip", "Bob", False), (0, 2))
-
+        print("FINISHED TEST 3")
     @number("3.4")
     def test_keys_values(self):
         # Disable resizing / rehashing.
@@ -97,7 +99,6 @@ class TestDoubleHash(unittest.TestCase):
 
         self.assertEqual(set(dt.values()), {1, 2, 3, 4, 5, 6, 7, 8})
         self.assertEqual(set(dt.values("Tim")), {1, 6})
-
     @number("3.5")
     def test_iters(self):
         # Test that these are actually iterators,

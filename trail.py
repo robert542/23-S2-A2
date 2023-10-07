@@ -115,7 +115,7 @@ class Trail:
                 active = active.store.following
             #handles when a split is active
 
-            if active.store == None:
+            elif active.store == None:
                 active = bank.pop(0)
 
             else:
@@ -156,5 +156,35 @@ class Trail:
         raise NotImplementedError()
 
     def difficulty_difference_paths(self, max_difference: int) -> list[list[Mountain]]: # Input to this should not exceed k > 50, at most 5 branches.
-        # 1054 ONLY!
-        raise NotImplementedError()
+        
+        #res is the final return from the method. It is a list of lists
+        res = []
+
+        #when self.store is None either the end of a split has been reached or the end of the whole trail has been
+        if self.store == None:
+            return res
+        #following mountains accumalates a list of lists containing all the following mountains that meet the difficulty constraint ahead of the current position
+        following_mountains = self.store.following.difficulty_difference_paths(max_difference)
+
+        if self.store is TrailSeries:
+            if self.store.mountain is None:
+                res = following_mountains
+                return res
+            mountain_list = [self.store.mountain]
+            for i in following_mountains:
+                if len(i) == 0:
+                    res.append(mountain_list)
+                else:
+                    val = (i[0].difficulty_level - self.store.mountain.difficulty_level)
+                    val *= val
+                    if val <= max_difference**2:
+                        res.append(mountain_list+i)
+                return res
+        else:
+            split_total = self.store.top.difficulty_difference_paths(max_difference) + self.store.bottom.difficulty_difference_paths(max_difference)
+            res = split_total
+            return res
+            
+
+                
+

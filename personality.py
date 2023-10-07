@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from enum import auto
 from base_enum import BaseEnum
 from mountain import Mountain
-from trail import Trail
+
 
 class PersonalityDecision(BaseEnum):
     TOP = auto()
@@ -38,7 +38,7 @@ class LazyWalker(WalkerPersonality):
         Try looking into the first mountain on each branch,
         take the path of least difficulty.
         """
-
+        from trail import Trail
         # isinstance breaks across imports if running the original file as main
         # So just check __class__.__name__ :(
         top_m = top_branch.store.__class__.__name__ == "TrailSeries"

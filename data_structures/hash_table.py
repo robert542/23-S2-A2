@@ -210,9 +210,10 @@ class LinearProbeTable(Generic[K, V]):
         """
         old_array = self.array
         self.size_index += 1
-        if self.size_index == len(self.TABLE_SIZES):
+        if self.size_index >= len(self.TABLE_SIZES):
             # Cannot be resized further.
             return
+
         self.array = ArrayR(self.TABLE_SIZES[self.size_index])
         self.count = 0
         for item in old_array:

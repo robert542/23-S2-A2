@@ -124,7 +124,7 @@ class InfiniteHashTable(Generic[K, V]):
         """
         position = self.hash(key)
 
-        if self.array[position] is None or type(self.array[position][1]) != type(InfiniteHashTable):
+        if self.array[position] is None or not isinstance(self.array[position][1], InfiniteHashTable):
             return [position]
         else:
             lower_position = self.array[position][1].get_location(key)
@@ -141,8 +141,7 @@ class InfiniteHashTable(Generic[K, V]):
             _ = self[key]
         except KeyError:
             return False
-        else:
-            return True
+        return True
         
     def keys(self) -> list[K]:
 
@@ -158,7 +157,7 @@ class InfiniteHashTable(Generic[K, V]):
         res = []
         for x in self.array:
             if x is not None:
-                if type(x[1]) is not type(InfiniteHashTable):
+                if not isinstance(x[1],InfiniteHashTable):
                     res.append(x[1])
         return res
 
@@ -170,7 +169,7 @@ class InfiniteHashTable(Generic[K, V]):
 
         for i in self.array:
             if i is not None:
-                if type(i[1]) is not type(InfiniteHashTable):
+                if isinstance(i[1],InfiniteHashTable):
                     res.append(i[0])
                 else:
                     res = res + i[1].sort_keys()

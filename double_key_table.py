@@ -74,6 +74,7 @@ class DoubleKeyTable(Generic[K1, K2, V]):
         :raises KeyError: When the key pair is not in the table, but is_insert is False.
         :raises FullError: When a table is full and cannot be inserted.
         """
+
         position = self.hash1(key1)
 
         for _ in range(self.table_size):
@@ -99,16 +100,18 @@ class DoubleKeyTable(Generic[K1, K2, V]):
                 table = self.array[position][1]
                 #if you are not inserting
                 if not is_insert:
-                    table_info = table.table_state()
+                    table_info = table.array
                 else:
                     table[key2] = key2
-                    table_info = table.table_state()
-                    del table[key2]
+                    table_info = table.array
+                    
                 #get underlying array data
                 #check for where key is placed
                 for i in range(len(table_info)):
                     if table_info[i] is not None:
                         if table_info[i][0] == key2:
+                            if is_insert:
+                                del table[key2]
                             return (position, i)
                 #if key is not there, then wrong key was input
                 raise KeyError(key2)
@@ -197,10 +200,10 @@ class DoubleKeyTable(Generic[K1, K2, V]):
             return res
         
         position = self.hash1(key)
-        for i in range(self.table_size):
-            if self.array[i] is not None:
-                if self.array[i][0] is key:
-                    return self.array[1].values()
+        for _ in range(self.table_size):
+            if self.array[position] is not None:
+                if self.array[position][0] is key:
+                    return self.array[position].values()
             position = (position+1) % self.table_size
 
     def __contains__(self, key: tuple[K1, K2]) -> bool:
@@ -254,14 +257,23 @@ class DoubleKeyTable(Generic[K1, K2, V]):
             self.array[position[0]] = None
             self.count -= 1
             # Start moving over the cluster
-            position = (position[0] + 1) % self.table_size
-            while self.array[position] is not None:
-                value_key, value = self.array[position]
-                self.array[position] = None
+            pos = (position[0] + 1) % self.table_size
+            #while stuff need to shift
+            while self.array[pos] is not None:
+                #get the outer key and the inner table
+                value_key, inner_table = self.array[pos]
+                #erase the position
+                self.array[pos] = None
+                #get any key from the sub table for the lin probe
+                inner_key_value = inner_table.keys()[0]
+
                 # Reinsert.
-                newpos = self._linear_probe(value_key, True)
-                self.array[newpos] = (value_key, value)
-                position = (position + 1) % self.table_size
+                #find the new place
+                newpos = self._linear_probe(value_key, inner_key_value, True)
+                #replace the linearprobed place with the correct information
+                self.array[newpos[0]] = (value_key, inner_table)
+                #keep on trucking
+                position = (pos + 1) % self.table_size
 
     def _rehash(self) -> None:
         """
@@ -302,4 +314,19 @@ class DoubleKeyTable(Generic[K1, K2, V]):
 
         Not required but may be a good testing tool.
         """
-        raise NotImplementedError()
+        res = ""
+        for i in self.array:
+            if i is not None:
+                yeet = "["
+                for j in i[1].array:
+                    yeet += str(j)
+                    yeet += ", "
+                yeet += "]"
+                res += str((i[0],yeet ))
+
+            else:
+                res += str(i)
+            res += ","
+        return res
+
+
